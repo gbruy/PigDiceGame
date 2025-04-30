@@ -28,10 +28,29 @@ current_player = 1
 players_score = [0,0]
 current_round_score = 0
 dice_value = None
+winner = None 
+
+# Estados de animação
+animating_dice = False
+animation_start_time = 0
+animation_duration = 800
+temp_dice_value = 1
 
 # Estado do Jogo
 game_active = True
 
+# Animação do Dado
+def update_dice_animation():
+    global animating_dice , temp_dice_value, dice_value , animation_start_time
+
+    if animating_dice :
+        elapsed = pygame.time.get_ticks() - animation_start_time
+        
+        if elapsed < animation_duration:
+            temp_dice_value = random.randint(1,6)
+        else:
+            
+            animating_dice = False
 
 # Desenhando a Tela
 def draw_ui():
@@ -45,17 +64,25 @@ def draw_ui():
     screen.blit(score_text2, (50,80))
 
     # Pontuação da Rodada
-    round_text = small_font.render(f"Pontos da Rodada : {current_round_score}", True, (255,255,0))
-    screen.blit(round_text, (50,140))
+    if animating_dice is not None:
+        round_text = small_font.render(f"Pontos da Rodada : {current_round_score}", True, (255,255,0))
+        screen.blit(round_text, (50,140))
 
     # Turno do Jogador
     turn_text = small_font.render(f"Vez do Jogador {current_player}", True , (0,255,0))
     screen.blit(turn_text, (50,180))
 
     # Exibir valor do dado
-    if dice_value is not None :
-        dice_text = font.render(f"Dado Rolado : {dice_value}", True, (255,165,0))
-        screen.blit(dice_text, (WIDTH // 2 - 100 , HEIGHT // 2 - 30))
+    if animating_dice or dice_value is not None:
+        value_to_show = temp_dice_value if animating_dice else dice_value 
+        x = WIDTH // 2 - 50 
+        y = HEIGHT //2 - 50
+        screen.blit(dice_images[value_to_show - 1 ] , (x,y))
+
+    # Exibir Vitoria 
+    if not game_active and winner is not None:
+        win_text = font.render(f"Jogador {winner} Venceu !! ", True, (0, 255, 0))
+        screen.blit(win_text , (WIDTH // 2 -100 , HEIGHT // 2 - 30))
 
     # Botao "Roll"
     button_rect = pygame.Rect(50, 500, 150, 50)
@@ -72,10 +99,24 @@ def draw_ui():
 
 
 
+# Carregar imanges
+dice_images = []
+for i in range(1,7):
+    image_path = f"assets/dice_{i}.png"
+    try:
+        image = pygame.image.load(image_path)
+        image = pygame.transform.scale(image, (100,100))
+        dice_images.append(image)
+    except FileNotFoundError:
+        print(f"Imagem não encontrada : {image_path}")
+        pygame.quit()
+        exit()
+
 # LOOP Principal do Jogo
 
 running = True
 while running:
+    update_dice_animation()
     draw_ui()
     pygame.display.flip() #Atualiza a Tela
     clock.tick(60) #Limita 60FPS
@@ -94,6 +135,9 @@ while running:
 
                 # Rola o dado
                 dice_value = random.randint(1,6) 
+                animating_dice = True
+                animation_start_time = pygame.time.get_ticks()
+                temp_dice_value = 1 
 
                 # Se tirar 1 Perde os pontos e muda o turno
                 if dice_value == 1:
@@ -107,12 +151,11 @@ while running:
                 # Soma os pontos da rodada ao jogador atual
                 players_score[current_player - 1] += current_round_score
                 current_round_score = 0 
-
                 # Verifica Vitoria
                 if players_score[current_player - 1] >= 50:
-                    print(f"Jogador  : {current_player} Venceu !")
-
+                    winner = current_player
                     game_active = False
+                    dice_value = None
 
                 # Troca de Jogador 
                 current_player = 2 if current_player == 1 else 1
