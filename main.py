@@ -63,6 +63,13 @@ def draw_ui():
     roll_text = small_font.render("Rolar" , True , (0,0,0))
     screen.blit(roll_text, (95,510))
 
+    # Botão "Parar"
+    stop_button_rect = pygame.Rect(250 , 500 , 150, 50)
+    stop_hover = pygame.mouse.get_pos()[0] in range(250 ,400) and pygame.mouse.get_pos()[1] in range (500,550)
+    pygame.draw.rect(screen, BUTTON_HOVER_COLOR if stop_hover else BUTTON_COLOR, stop_button_rect)
+    stop_text = font.render("Parar", True, (0,0,0))
+    screen.blit(stop_text,  (295,510))
+
 
 
 # LOOP Principal do Jogo
@@ -94,3 +101,18 @@ while running:
                     current_player = 2 if current_player == 1 else 1
                 else:
                     current_round_score += dice_value
+            elif 250 < mouse_pos[0] < 400 and 500 < mouse_pos[1] < 550 :
+                print("Botar 'Parar' Clicado")
+
+                # Soma os pontos da rodada ao jogador atual
+                players_score[current_player - 1] += current_round_score
+                current_round_score = 0 
+
+                # Verifica Vitoria
+                if players_score[current_player - 1] >= 50:
+                    print(f"Jogador  : {current_player} Venceu !")
+
+                    game_active = False
+
+                # Troca de Jogador 
+                current_player = 2 if current_player == 1 else 1
