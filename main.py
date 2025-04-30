@@ -1,4 +1,5 @@
 import pygame
+import random
 
 
 # Inicializa o pygame 
@@ -51,6 +52,11 @@ def draw_ui():
     turn_text = small_font.render(f"Vez do Jogador {current_player}", True , (0,255,0))
     screen.blit(turn_text, (50,180))
 
+    # Exibir valor do dado
+    if dice_value is not None :
+        dice_text = font.render(f"Dado Rolado : {dice_value}", True, (255,165,0))
+        screen.blit(dice_text, (WIDTH // 2 - 100 , HEIGHT // 2 - 30))
+
     # Botao "Roll"
     button_rect = pygame.Rect(50, 500, 150, 50)
     pygame.draw.rect(screen, BUTTON_HOVER_COLOR if pygame.mouse.get_pos()[0] in range(50,200) and pygame.mouse.get_pos()[1] in range (500,550) else BUTTON_COLOR, button_rect)
@@ -70,3 +76,21 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT :
             running = False
+    
+         # verificar click do mouse
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            mouse_pos = pygame.mouse.get_pos()
+
+            # Verificar se clicou do "Rolar"
+            if 50 < mouse_pos[0] < 200 and 500 < mouse_pos[1] < 550 :
+                print("Botão 'Rolar' Clicado")
+
+                # Rola o dado
+                dice_value = random.randint(1,6) 
+
+                # Se tirar 1 Perde os pontos e muda o turno
+                if dice_value == 1:
+                    current_round_score = 0 
+                    current_player = 2 if current_player == 1 else 1
+                else:
+                    current_round_score += dice_value
